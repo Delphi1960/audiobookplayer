@@ -11,9 +11,14 @@ import {storage} from '../../utils/storage';
 
 const SecondRoute = () => (
   <View>
-    <Text>111111111111111111</Text>
+    <Text>22222222222222222</Text>
   </View>
 );
+// const FirstRoute = () => (
+//   <View>
+//     <Text>111111111111111111</Text>
+//   </View>
+// );
 
 function Divider() {
   return <View style={styles.divider} />;
@@ -53,7 +58,7 @@ export default function Library({navigation}: any) {
       scrollEnabled={true}
     />
   );
-  console.log(libRootDir);
+
   return (
     <>
       <View style={styles.container}>

@@ -14,6 +14,7 @@ import TrackPlayer from 'react-native-track-player';
 import {addTracks} from '../../utils/trackPlayerServices';
 import {scanDir} from '../../utils/scanDir';
 import {storage} from '../../utils/storage';
+import {PlayList} from '../../types/playList.type';
 
 type ItemData = {
   id: string;
@@ -66,37 +67,70 @@ export default function LibraryGetList() {
   const [selectedId, setSelectedId] = useState<string>();
   const rootDir = storage.getString('@rootPath');
   const [libRootDir, setLibRootDir] = useState<string>();
+  const [trackList, setTrackList] = useState<PlayList[]>([]);
 
-  async function loadPlaylist(trackList: any) {
-    // Если загружены новые треки
-    //пробую обновить треки
+  async function loadPlaylist(trc: PlayList[]) {
     await TrackPlayer.reset();
-    addTracks(trackList);
-    //пробую обновить треки
+    addTracks(trc);
   }
 
   const renderItem = ({item}: {item: ItemData}) => {
     const backgroundColor = item.id === selectedId ? '#6e3b6e' : '#d3bdde';
     const color = item.id === selectedId ? 'white' : 'navy';
     const color1 = item.id === selectedId ? 'white' : 'blue';
-
+    // let trackList = [{}];
     return (
       <Item
         item={item}
+        // Выбор книги=======================================
         onPress={() => {
           setSelectedId(item.id);
           storage.set('@selectedBook', item.id);
-          const trackList = {
-            id: item.id,
-            url: 'file://' + item.path,
-            title: item.name,
-            // artist: 'Роман Волков',
-          };
-          storage.set('@trackLict', JSON.stringify(trackList));
-          // const track: string | undefined = storage.getString('@trackLict');
-          // console.log(JSON.parse(track!));
+
+          if (item.dir === 'f') {
+            setTrackList([
+              {
+                id: item.id,
+                url: 'file://' + item.path,
+                title: item.name,
+                artist: '',
+                duration: 0,
+              },
+            ]);
+          } else {
+            async function scanTracs() {
+              const resultTrackList = await scanDir(item.path!);
+              resultTrackList.files.sort((a, b) => {
+                return a > b ? 1 : -1;
+              });
+              // console.log(resultTrackList.files);
+              for (let i = 0; i < resultTrackList.files.length; i++) {
+                let track = {
+                  id: resultTrackList.files[i],
+                  url: 'file://' + resultTrackList.files[i],
+                  title: resultTrackList.files[i].slice(libRootDir!.length + 1),
+                  artist: '',
+                  duration: 0,
+                };
+
+                trackList[i] = track;
+                // console.log(trackList[i]);
+              }
+              setTrackList(trackList);
+            }
+            scanTracs();
+          }
+          // console.log(trackList);
+          storage.set('@trackList', JSON.stringify(trackList));
+
           loadPlaylist(trackList);
+          console.log(
+            // trackList,
+            '======@trackList======',
+            JSON.parse(storage.getString('@trackList')!),
+          );
         }}
+        // Выбор книги=======================================
         backgroundColor={backgroundColor}
         textColor={color}
         textColor1={color1}
@@ -105,9 +139,9 @@ export default function LibraryGetList() {
   };
 
   useEffect(() => {
+    // console.log(rootDir);
     setLibRootDir(rootDir);
     setSelectedId(storage.getString('@selectedBook'));
-    console.log(libRootDir);
   }, [libRootDir, rootDir]);
 
   const fileListSort = libBooksList;
@@ -172,6 +206,8 @@ export default function LibraryGetList() {
   }
   scan();
   // ///////
+
+  // console.log(fileListSort);
 
   return (
     <SafeAreaView style={styles.container}>

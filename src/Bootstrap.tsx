@@ -1,11 +1,8 @@
 import React, {useEffect, useState} from 'react';
 
 import {storage} from './utils/storage';
-import {currentBookId, playList, rootDirPath} from './recoil/playList.state';
-import {useSetRecoilState} from 'recoil';
 import {addTracks, setupPlayer} from './utils/trackPlayerServices';
 import TrackPlayer from 'react-native-track-player';
-import {PlayList} from './types/playList.type';
 import {SafeAreaView, StyleSheet} from 'react-native';
 import {ActivityIndicator} from 'react-native';
 
@@ -13,28 +10,48 @@ type Props = {
   children: React.ReactNode;
 };
 
+const trackListLocal = [
+  {
+    id: 'nothing',
+    url: '',
+    title: 'Книга не выбрана!',
+    artist: '',
+    // duration: 1672,
+  },
+  // {
+  //   id: '1',
+  //   url: 'file:///storage/emulated/0/DCIM/assets/book/1-01.mp3',
+  //   title: '(1-01) Стивен Кинг - Тёмная Башня 3 Бесплодн...',
+  //   artist: 'Роман Волков',
+  //   // duration: 1672,
+  // },
+  // {
+  //   id: '2',
+  //   url: 'file:///storage/emulated/0/DCIM/assets/book/1-02.mp3',
+  //   title: '(1-02) Стивен Кинг - Тёмная Башня 3 Бесплодн...',
+  //   artist: 'Роман Волков',
+  //   // duration: 381,
+  // },
+  // {
+  //   id: '3',
+  //   url: 'file:///storage/emulated/0/DCIM/assets/book/Ярость (Piston)',
+  //   title: 'Стивен Кинг - Бабуля',
+  //   artist: 'Роман Волков',
+  //   // duration: 381,
+  // },
+];
+
 export default function Bootstrap({children}: Props) {
-  // корневой каталог библиотеки
-  const rootPath = storage.getString('@rootPath');
-  const setLibRootDir = useSetRecoilState(rootDirPath);
-
-  // текущий id выбранной книги
-  const currentBook = storage.getString('@selectedBook');
-  const setCurrentBook = useSetRecoilState(currentBookId);
-
-  // плей лист. Список файлов выбранной книги
-  const track = storage.getString('@trackLict');
-  const playTrackList = JSON.parse(track!);
-  const setPlayList = useSetRecoilState<PlayList>(playList);
+  storage.clearAll();
+  // rootPath = storage.getString('@rootPath');
+  const rootPath = '/storage/emulated/0/';
+  storage.set('@rootPath', rootPath);
 
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
   async function loadPlaylist(trackList: any) {
-    // Если загружены новые треки
-    //пробую обновить треки
     await TrackPlayer.reset();
     addTracks(trackList);
-    //пробую обновить треки
   }
 
   async function setup() {
@@ -42,21 +59,14 @@ export default function Bootstrap({children}: Props) {
 
     const queue = await TrackPlayer.getQueue();
     if (isSetup && queue.length <= 0) {
-      loadPlaylist(playTrackList);
+      loadPlaylist(trackListLocal);
     }
     setIsPlayerReady(isSetup);
   }
 
-  setup();
-
   useEffect(() => {
-    setLibRootDir(rootPath);
-  }, [rootPath, setLibRootDir]);
-
-  useEffect(() => {
-    setCurrentBook(currentBook);
-    setPlayList(playTrackList);
-  }, [currentBook, playTrackList, setCurrentBook, setPlayList]);
+    setup();
+  }, []);
 
   if (!isPlayerReady) {
     return (

@@ -4,10 +4,11 @@ import TrackPlayer, {
   useTrackPlayerEvents,
   Event,
   State,
+  Track,
 } from 'react-native-track-player';
 
 export default function Header() {
-  const [info, setInfo] = useState({});
+  const [info, setInfo] = useState<Track>({});
   useEffect(() => {
     setTrackInfo();
   }, []);
@@ -16,26 +17,30 @@ export default function Header() {
     if (event.state === State.nextTrack) {
       setTrackInfo();
     }
+    setTrackInfo();
   });
 
   async function setTrackInfo() {
     const track = await TrackPlayer.getCurrentTrack();
-    const info = await TrackPlayer.getTrack(track);
+    const info = await TrackPlayer.getTrack(track!);
     setInfo(info);
   }
 
   return (
-    <View style={{flex: 1}}>
+    <View style={styles.container}>
       <Text style={styles.songTitle}>{info.title}</Text>
       <Text style={styles.artistName}>{info.artist}</Text>
+      <Text style={styles.artistName}>{info.url}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {flex: 1, justifyContent: 'flex-start', alignItems: 'center'},
   songTitle: {
     fontSize: 20,
-    color: 'black',
+    fontWeight: 'bold',
+    color: 'navy',
   },
   artistName: {
     fontSize: 16,

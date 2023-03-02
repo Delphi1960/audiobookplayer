@@ -1,15 +1,17 @@
 import {atom} from 'recoil';
 import {PlayList} from '../types/playList.type';
 
-export const playList = atom<PlayList>({
+export const playList = atom<PlayList[]>({
   key: 'playList',
-  default: {
-    id: '1',
-    url: require('../assets/books/1-01.mp3'),
-    title: '(1-01) Стивен Кинг - Тёмная Башня 3 Бесплодн...',
-    artist: 'Роман Волков',
-    duration: 1672,
-  },
+  default: [
+    {
+      id: '1',
+      url: '',
+      title: 'Книга не выбрана',
+      artist: '',
+      duration: 0,
+    },
+  ],
 });
 
 export const rootDirPath = atom<string | undefined>({
