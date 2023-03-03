@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import {Title} from 'react-native-paper';
 import TrackPlayer, {
   useTrackPlayerEvents,
   Event,
@@ -25,12 +26,14 @@ export default function Header() {
     const info = await TrackPlayer.getTrack(track!);
     setInfo(info);
   }
-
+  if (info.title === null) {
+    info.title = 'Не выбрана книга';
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.songTitle}>{info.title}</Text>
       <Text style={styles.artistName}>{info.artist}</Text>
-      <Text style={styles.artistName}>{info.url}</Text>
+      <Text style={styles.artistName}>{info.file}</Text>
     </View>
   );
 }
@@ -41,6 +44,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: 'navy',
+    textAlign: 'center',
   },
   artistName: {
     fontSize: 16,

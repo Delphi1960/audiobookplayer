@@ -56,7 +56,7 @@ export default function PlayList() {
           renderItem={({item, index}) => (
             <PlaylistItem
               index={index}
-              title={item.title}
+              title={item.file}
               isCurrent={currentTrack === index}
             />
           )}

@@ -67,11 +67,41 @@ export default function LibraryGetList() {
   const [selectedId, setSelectedId] = useState<string>();
   const rootDir = storage.getString('@rootPath');
   const [libRootDir, setLibRootDir] = useState<string>();
-  const [trackList, setTrackList] = useState<PlayList[]>([]);
+  const [, setTrackList] = useState<PlayList[]>([]);
 
   async function loadPlaylist(trc: PlayList[]) {
     await TrackPlayer.reset();
     addTracks(trc);
+  }
+
+  async function scanTracs(path: string, name: string) {
+    const resultTrackList = await scanDir(path!);
+    resultTrackList.files.sort((a, b) => {
+      return a > b ? 1 : -1;
+    });
+    // console.log(resultTrackList.files);
+    let trackFileList = [];
+    for (let i = 0; i < resultTrackList.files.length; i++) {
+      let bookName = resultTrackList.files[i].slice(libRootDir!.length + 1);
+      let title = bookName.slice(0, bookName.indexOf('/'));
+      if (title !== name) {
+        title = title + '\n' + name;
+      }
+      let track = {
+        id: resultTrackList.files[i],
+        url: 'file://' + resultTrackList.files[i],
+        title: title,
+        artist: '',
+        file: bookName.slice(bookName.lastIndexOf('/') + 1),
+        duration: 0,
+      };
+
+      trackFileList.push(track);
+    }
+    loadPlaylist(trackFileList);
+    storage.set('@trackList', JSON.stringify(trackFileList));
+
+    setTrackList(trackFileList);
   }
 
   const renderItem = ({item}: {item: ItemData}) => {
@@ -86,9 +116,9 @@ export default function LibraryGetList() {
         onPress={() => {
           setSelectedId(item.id);
           storage.set('@selectedBook', item.id);
-
+          console.log(item.name);
           if (item.dir === 'f') {
-            setTrackList([
+            let trackFileList = [
               {
                 id: item.id,
                 url: 'file://' + item.path,
@@ -96,39 +126,18 @@ export default function LibraryGetList() {
                 artist: '',
                 duration: 0,
               },
-            ]);
+            ];
+            loadPlaylist(trackFileList);
+            storage.set('@trackList', JSON.stringify(trackFileList));
+            setTrackList(trackFileList);
           } else {
-            async function scanTracs() {
-              const resultTrackList = await scanDir(item.path!);
-              resultTrackList.files.sort((a, b) => {
-                return a > b ? 1 : -1;
-              });
-              // console.log(resultTrackList.files);
-              for (let i = 0; i < resultTrackList.files.length; i++) {
-                let track = {
-                  id: resultTrackList.files[i],
-                  url: 'file://' + resultTrackList.files[i],
-                  title: resultTrackList.files[i].slice(libRootDir!.length + 1),
-                  artist: '',
-                  duration: 0,
-                };
-
-                trackList[i] = track;
-                // console.log(trackList[i]);
-              }
-              setTrackList(trackList);
-            }
-            scanTracs();
+            scanTracs(item.path, item.name);
           }
-          // console.log(trackList);
-          storage.set('@trackList', JSON.stringify(trackList));
 
-          loadPlaylist(trackList);
-          console.log(
-            // trackList,
-            '======@trackList======',
-            JSON.parse(storage.getString('@trackList')!),
-          );
+          // console.log(
+          //   '======@trackList======',
+          //   JSON.parse(storage.getString('@trackList')!),
+          // );
         }}
         // Выбор книги=======================================
         backgroundColor={backgroundColor}
@@ -142,7 +151,7 @@ export default function LibraryGetList() {
     // console.log(rootDir);
     setLibRootDir(rootDir);
     setSelectedId(storage.getString('@selectedBook'));
-  }, [libRootDir, rootDir]);
+  }, [rootDir]);
 
   const fileListSort = libBooksList;
 
@@ -169,6 +178,7 @@ export default function LibraryGetList() {
         pos = foundPos + 1;
         nPos = nPos + 1;
       }
+
       if (d[i].indexOf('/') >= 0 && d[i].indexOf('.') < libRootDir!.length) {
         d[i] = d[i].slice(0, 12);
       }
@@ -204,6 +214,7 @@ export default function LibraryGetList() {
     // }
     setLibBooksList(bookList);
   }
+
   scan();
   // ///////
 

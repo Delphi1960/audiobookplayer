@@ -5,53 +5,55 @@ import {addTracks, setupPlayer} from './utils/trackPlayerServices';
 import TrackPlayer from 'react-native-track-player';
 import {SafeAreaView, StyleSheet} from 'react-native';
 import {ActivityIndicator} from 'react-native';
+import {PlayList} from './types/playList.type';
 
 type Props = {
   children: React.ReactNode;
 };
 
-const trackListLocal = [
-  {
-    id: 'nothing',
-    url: '',
-    title: 'Книга не выбрана!',
-    artist: '',
-    // duration: 1672,
-  },
-  // {
-  //   id: '1',
-  //   url: 'file:///storage/emulated/0/DCIM/assets/book/1-01.mp3',
-  //   title: '(1-01) Стивен Кинг - Тёмная Башня 3 Бесплодн...',
-  //   artist: 'Роман Волков',
-  //   // duration: 1672,
-  // },
-  // {
-  //   id: '2',
-  //   url: 'file:///storage/emulated/0/DCIM/assets/book/1-02.mp3',
-  //   title: '(1-02) Стивен Кинг - Тёмная Башня 3 Бесплодн...',
-  //   artist: 'Роман Волков',
-  //   // duration: 381,
-  // },
-  // {
-  //   id: '3',
-  //   url: 'file:///storage/emulated/0/DCIM/assets/book/Ярость (Piston)',
-  //   title: 'Стивен Кинг - Бабуля',
-  //   artist: 'Роман Волков',
-  //   // duration: 381,
-  // },
-];
-
 export default function Bootstrap({children}: Props) {
-  storage.clearAll();
-  // rootPath = storage.getString('@rootPath');
-  const rootPath = '/storage/emulated/0/';
-  storage.set('@rootPath', rootPath);
-
+  // storage.clearAll();
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
-  async function loadPlaylist(trackList: any) {
+  let rootPath = storage.getString('@rootPath');
+  if (rootPath === undefined) {
+    rootPath = '/storage/emulated/0/';
+    storage.set('@rootPath', rootPath);
+  }
+
+  let trackListStr: string | undefined = storage.getString('@trackList');
+  let trackList: PlayList[];
+  if (trackListStr === undefined) {
+    trackList = [
+      {
+        id: 'nothing',
+        url: '',
+        title: 'Книга не выбрана!',
+        artist: '',
+        duration: 0,
+      },
+    ];
+  } else {
+    trackList = JSON.parse(trackListStr);
+  }
+  if (trackList.length === 0) {
+    trackList = [
+      {
+        id: 'nothing',
+        url: '',
+        title: 'Книга не выбрана!',
+        artist: '',
+        duration: 0,
+      },
+    ];
+  }
+  storage.set('@trackList', JSON.stringify(trackList));
+  // console.log({rootPath, trackListStr, trackList});
+
+  //==========================================================================================
+  async function loadPlaylist(tracks: any) {
     await TrackPlayer.reset();
-    addTracks(trackList);
+    addTracks(tracks);
   }
 
   async function setup() {
@@ -59,7 +61,7 @@ export default function Bootstrap({children}: Props) {
 
     const queue = await TrackPlayer.getQueue();
     if (isSetup && queue.length <= 0) {
-      loadPlaylist(trackListLocal);
+      loadPlaylist(trackList);
     }
     setIsPlayerReady(isSetup);
   }
