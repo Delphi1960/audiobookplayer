@@ -10,30 +10,55 @@ export default function TrackProgress() {
   const {position, duration} = useProgress(0);
   const [sound, setSound] = useState(1);
 
-  // function convertTime(sec) {
-  //   var hours = Math.floor(sec / 3600);
-  //   hours >= 1 ? (sec = sec - hours * 3600) : (hours = '00');
-  //   var min = Math.floor(sec / 60);
-  //   min >= 1 ? (sec = sec - min * 60) : (min = '00');
-  //   sec < 1 ? (sec = '00') : void 0;
+  function secondFormat(seconds: number) {
+    let sHours: string = '0';
+    let fullHours = '0';
+    let nMinutes = 0;
+    let sMinutes = '0';
+    let fullMinutes = '0';
+    let nSeconds = 0;
+    let sSeconds = '0';
+    let result = '';
 
-  //   min.toString().length == 1 ? (min = '0' + min) : void 0;
-  //   sec.toString().length == 1 ? (sec = '0' + sec) : void 0;
+    sHours = String(seconds / 3600);
+    if (sHours.indexOf('.') > 0) {
+      fullHours = sHours.slice(0, sHours.indexOf('.'));
+      nMinutes = Number('0.' + sHours.slice(sHours.indexOf('.') + 1)) * 60;
+      // целое число часов
+    } else if (Number(sHours) > 0) {
+      fullHours = sHours;
+      nMinutes = 0;
+    } else {
+      fullHours = '0';
+      nMinutes = Number(sHours) * 60;
+    }
 
-  //   return hours + ':' + min + ':' + sec;
-  // }
-
-  function format(seconds: number) {
-    let min = String(seconds / 60);
-    let mins = parseInt(min, 10).toString().padStart(2, '0');
-    let secs = (Math.trunc(seconds) % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
+    sMinutes = String(nMinutes);
+    if (sMinutes.indexOf('.') > 0) {
+      fullMinutes = sMinutes.slice(0, sMinutes.indexOf('.'));
+      nSeconds = Number('0.' + sMinutes.slice(sMinutes.indexOf('.') + 1)) * 60;
+      // целое число минут
+    } else if (Number(sMinutes) > 0) {
+      fullMinutes = sMinutes;
+      nMinutes = 0;
+    } else {
+      fullMinutes = '0';
+      nSeconds = Number(sMinutes) * 60;
+    }
+    sSeconds = nSeconds.toFixed(0);
+    fullHours.length === 1 ? (fullHours = '0' + fullHours) : fullHours;
+    fullMinutes.length === 1 ? (fullMinutes = '0' + fullMinutes) : fullMinutes;
+    sSeconds.length === 1 ? (sSeconds = '0' + sSeconds) : sSeconds;
+    result = fullHours + ':' + fullMinutes + ':' + sSeconds;
+    // console.log(result);
+    return result;
   }
+
   TrackPlayer.setVolume(sound);
   return (
     <View style={styles.mainSpace}>
       <Text style={styles.trackProgress}>
-        {format(position)} / {format(duration)}
+        {secondFormat(position)} / {secondFormat(duration)}
         {/* {convertTime(position)} / {convertTime(duration)} */}
       </Text>
       <Slider

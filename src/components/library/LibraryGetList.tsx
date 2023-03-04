@@ -116,7 +116,7 @@ export default function LibraryGetList() {
         onPress={() => {
           setSelectedId(item.id);
           storage.set('@selectedBook', item.id);
-          console.log(item.name);
+          // console.log(item.name);
           if (item.dir === 'f') {
             let trackFileList = [
               {
