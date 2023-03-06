@@ -62,11 +62,12 @@ const Item = ({
   </TouchableOpacity>
 );
 
-export default function LibraryGetList() {
-  const [libBooksList, setLibBooksList] = useState<ItemData[]>([]);
+type Props = {rootDir: string};
+
+export default function LibraryGetList({rootDir}: Props) {
+  const [booksList, setBooksList] = useState<ItemData[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
-  const rootDir = storage.getString('@rootPath');
-  const [libRootDir, setLibRootDir] = useState<string>();
+  const [libRootDir, setLibRootDir] = useState<string | undefined>('');
   const [, setTrackList] = useState<PlayList[]>([]);
 
   async function loadPlaylist(trc: PlayList[]) {
@@ -148,24 +149,13 @@ export default function LibraryGetList() {
   };
 
   useEffect(() => {
-    // console.log(rootDir);
     setLibRootDir(rootDir);
     setSelectedId(storage.getString('@selectedBook'));
+    scanLibrary(rootDir);
   }, [rootDir]);
 
-  const fileListSort = libBooksList;
-
-  fileListSort.sort((a, b) => {
-    if (a.dir === b.dir) {
-      return a.name > b.name ? 1 : -1;
-    }
-    return a.dir > b.dir ? 1 : -1;
-  });
-
-  // ///////
-
-  async function scan() {
-    const data = await scanDir(libRootDir!);
+  async function scanLibrary(path: string | undefined) {
+    const data = await scanDir(path!);
     const d: string[] = data.files.map(item => item);
     for (let i = 0; i < d.length; i++) {
       let pos = 0;
@@ -179,24 +169,24 @@ export default function LibraryGetList() {
         nPos = nPos + 1;
       }
 
-      if (d[i].indexOf('/') >= 0 && d[i].indexOf('.') < libRootDir!.length) {
+      if (d[i].indexOf('/') >= 0 && d[i].indexOf('.') < path!.length) {
         d[i] = d[i].slice(0, 12);
       }
-      if (pos > libRootDir!.length + 1) {
+      if (pos > path!.length + 1) {
         d[i] = d[i].slice(0, pos - 1);
       }
     }
 
     const resultList: string[] = [...new Set(d)];
     const bookList: ItemData[] = resultList.map(function (val, ind) {
-      let valName = val.slice(libRootDir!.length + 1);
+      let valName = val.slice(path!.length + 1);
       if (valName.indexOf('/') >= 0) {
         valName = valName.slice(valName.indexOf('/') + 1);
       }
       if (valName.indexOf('.mp3') > 0) {
         valName = valName.slice(0, valName.indexOf('.'));
       }
-      let root = val.slice(libRootDir!.length + 1);
+      let root = val.slice(path!.length + 1);
       if (root.indexOf('/') >= 0) {
         root = root.slice(0, root.indexOf('/'));
       }
@@ -212,23 +202,26 @@ export default function LibraryGetList() {
     // for (let i = 0; i < bookList.length; i++) {
     //   console.log(bookList[i]);
     // }
-    setLibBooksList(bookList);
+    bookList.sort((a, b) => {
+      if (a.dir === b.dir) {
+        return a.name > b.name ? 1 : -1;
+      }
+      return a.dir > b.dir ? 1 : -1;
+    });
+    setBooksList(bookList);
   }
 
-  scan();
-  // ///////
-
-  // console.log(fileListSort);
-
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={fileListSort}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        extraData={selectedId}
-      />
-    </SafeAreaView>
+    <View>
+      <SafeAreaView style={styles.container}>
+        <FlatList
+          data={booksList}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          extraData={selectedId}
+        />
+      </SafeAreaView>
+    </View>
   );
 }
 

@@ -1,6 +1,6 @@
 import {Text} from '@react-native-material/core';
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {SafeAreaView, ScrollView, StyleSheet, View} from 'react-native';
 import * as RNFS from 'react-native-fs';
 import {Button, Menu} from 'react-native-paper';
 import {storage} from '../utils/storage';
@@ -12,7 +12,7 @@ function Divider() {
   return <View style={styles.divider} />;
 }
 
-export default function GetRootDirLib() {
+export default function GetRootDirLib({navigation}: any) {
   const [dirPath, setDirPath] = useState(RNFS.ExternalStorageDirectoryPath);
   const [fileList, setFileList] = useState<RNFS.ReadDirItem[]>([]);
   const setLibRootDir = useSetRecoilState(rootDirPath);
@@ -46,49 +46,62 @@ export default function GetRootDirLib() {
   function handlePress(ind: number) {
     setDirPath(fileListSort[ind].path);
     getFileContent(dirPath);
-    storage.set('@rootPath', fileListSort[ind].path);
-    setLibRootDir(fileListSort[ind].path);
-    storage.set('@selectedBook', '');
   }
 
   function handlePressBack() {
     setDirPath(dirPath.slice(0, dirPath.lastIndexOf('/')));
   }
 
+  const onOkPress = () => {
+    storage.set('@rootPath', dirPath);
+    storage.set('@selectedBook', '');
+    setLibRootDir(dirPath);
+    navigation.navigate('Библиотека');
+  };
   return (
-    <View style={styles.container}>
-      <View style={styles.btn}>
-        <View>
-          <Button
-            // buttonColor="gray"
-            compact
-            // icon="backburger"
-            icon="clipboard-arrow-left"
-            mode="text"
-            onPress={() => {
-              handlePressBack();
-            }}>
-            <Text style={styles.txtBtn}>Назад</Text>
-          </Button>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <View style={styles.btn}>
+          <View>
+            <Button
+              // buttonColor="gray"
+              compact
+              // icon="backburger"
+              icon="clipboard-arrow-left"
+              mode="text"
+              onPress={() => {
+                handlePressBack();
+              }}>
+              <Text style={styles.txtBtn}>Назад</Text>
+            </Button>
+          </View>
+          <View style={styles.text}>
+            <Text variant="subtitle1">{dirPath}</Text>
+          </View>
         </View>
-        <View style={styles.text}>
-          <Text variant="subtitle1">{dirPath}</Text>
+        <Divider />
+        <View style={styles.scroll}>
+          <ScrollView>
+            {fileListSort.map((val, ind) => (
+              <Menu.Item
+                key={ind}
+                leadingIcon={val.dir === 'd' ? 'folder' : 'file'}
+                onPress={() => {
+                  handlePress(ind);
+                }}
+                title={val.name}
+              />
+            ))}
+          </ScrollView>
         </View>
       </View>
-      <Divider />
-      <View>
-        {fileListSort.map((val, ind) => (
-          <Menu.Item
-            key={ind}
-            leadingIcon={val.dir === 'd' ? 'folder' : 'file'}
-            onPress={() => {
-              handlePress(ind);
-            }}
-            title={val.name}
-          />
-        ))}
+
+      <View style={styles.okBtn}>
+        <Button icon="folder" mode="contained" onPress={onOkPress}>
+          Ok
+        </Button>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
@@ -117,5 +130,13 @@ const styles = StyleSheet.create({
   },
   text: {
     justifyContent: 'center',
+  },
+  scroll: {height: '92%'},
+  okBtn: {
+    fflexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // backgroundColor: '#fff',
+    height: '8%',
   },
 });

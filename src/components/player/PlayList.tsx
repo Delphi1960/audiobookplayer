@@ -1,40 +1,45 @@
 import React, {useEffect, useState} from 'react';
 import {TouchableOpacity, Text, View, FlatList, StyleSheet} from 'react-native';
+import {Button} from 'react-native-paper';
+
 import TrackPlayer, {
   Event,
   State,
+  Track,
   useTrackPlayerEvents,
 } from 'react-native-track-player';
 
-// type Props = {};
-
 export default function PlayList() {
-  const [queue, setQueue] = useState<any>([]); //очередь
+  const [queue, setQueue] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState(0);
+  const [first, setFirst] = useState(0);
 
-  // console.log(trackList);
-
-  async function loadPlaylist() {
+  const loadPlaylist = async () => {
     setQueue(await TrackPlayer.getQueue());
-  }
+  };
 
   useEffect(() => {
     loadPlaylist();
-  }, [queue]);
+  }, []);
 
-  const events = [Event.PlaybackState, Event.PlaybackError];
-  useTrackPlayerEvents([Event.PlaybackTrackChanged], event => {
+  useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
     if (event.state === State.nextTrack) {
-      TrackPlayer.getCurrentTrack().then(index => setCurrentTrack(index));
+      let index = await TrackPlayer.getCurrentTrack();
+      setCurrentTrack(index);
     }
   });
 
+  type PlayItem = {
+    index: number;
+    title: string | undefined | number;
+    isCurrent: boolean;
+  };
   // eslint-disable-next-line react/no-unstable-nested-components
-  function PlaylistItem({index, title, isCurrent}: any) {
-    //
+  function PlaylistItem({index, title, isCurrent}: PlayItem) {
     function handleItemPress() {
       TrackPlayer.skip(index);
     }
+
     return (
       <TouchableOpacity onPress={handleItemPress}>
         <Text
@@ -47,7 +52,12 @@ export default function PlayList() {
       </TouchableOpacity>
     );
   }
-
+  const getDuration = async () => console.log(await TrackPlayer.getDuration());
+  const onPress = () => {
+    setFirst(first + 1);
+    getDuration();
+    TrackPlayer.skipToNext();
+  };
   return (
     <View>
       <View style={styles.playlist}>
@@ -56,12 +66,15 @@ export default function PlayList() {
           renderItem={({item, index}) => (
             <PlaylistItem
               index={index}
-              title={item.file}
+              title={item.url}
               isCurrent={currentTrack === index}
             />
           )}
         />
       </View>
+      <Button icon="camera" mode="contained" onPress={onPress}>
+        test
+      </Button>
     </View>
   );
 }

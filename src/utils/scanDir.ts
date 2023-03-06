@@ -42,13 +42,14 @@ export async function scanDir(
         data.directory.push(directoryPath);
         data = await scanDir(directoryPath, data);
       } else {
-        data.files.push(pathOfDirToScan + '/' + readedFilesAndDir[i].name);
-        // console.log(pathOfDirToScan, readedFilesAndDir[i].name);
+        if (readedFilesAndDir[i].name.indexOf('.mp3') > 0) {
+          data.files.push(pathOfDirToScan + '/' + readedFilesAndDir[i].name);
+        }
       }
     }
   } catch (error) {
     console.warn;
   }
-
+  // console.log(data.files);
   return data;
 }

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 
 import {storage} from './utils/storage';
 import {addTracks, setupPlayer} from './utils/trackPlayerServices';
@@ -66,9 +66,11 @@ export default function Bootstrap({children}: Props) {
     setIsPlayerReady(isSetup);
   }
 
-  useEffect(() => {
-    setup();
-  }, []);
+  // useEffect(() => {
+  //   //
+  // }, []);
+
+  setup();
 
   if (!isPlayerReady) {
     return (

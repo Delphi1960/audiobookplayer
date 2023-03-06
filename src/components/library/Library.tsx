@@ -24,12 +24,6 @@ function Divider() {
   return <View style={styles.divider} />;
 }
 
-const FirstRoute = () => <LibraryGetList />;
-const renderScene = SceneMap({
-  first: FirstRoute,
-  second: SecondRoute,
-});
-
 export default function Library({navigation}: any) {
   // корневой каталог библиотеки
   const rootPath = storage.getString('@rootPath');
@@ -42,6 +36,11 @@ export default function Library({navigation}: any) {
     {key: 'first', title: 'Все книги'},
     {key: 'second', title: 'Новые'},
   ]);
+  const FirstRoute = () => <LibraryGetList rootDir={rootPath!} />;
+  const renderScene = SceneMap({
+    first: FirstRoute,
+    second: SecondRoute,
+  });
 
   useEffect(() => {
     setLibRootDir(rootPath);
