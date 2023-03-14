@@ -75,27 +75,37 @@ export default function LibraryGetList({rootDir}: Props) {
     await TrackPlayer.add(trc);
   }
 
-  async function scanTracs(path: string, name: string) {
-    const resultTrackList = await scanDir(path!);
-    resultTrackList.files.sort((a, b) => {
-      return a > b ? 1 : -1;
-    });
+  async function scanTracs(items: ItemData) {
     let trackFileList = [];
-    for (let i = 0; i < resultTrackList.files.length; i++) {
-      let bookName = resultTrackList.files[i].slice(libRootDir!.length + 1);
-      let title = bookName.slice(0, bookName.indexOf('/'));
-      if (title !== name) {
-        title = title + '\n' + name;
+    if (items.dir === 'f') {
+      trackFileList = [
+        {
+          id: items.id,
+          url: 'file://' + items.path,
+          title: items.name,
+          artist: '',
+        },
+      ];
+    } else {
+      const resultTrackList = await scanDir(items.path!);
+      resultTrackList.files.sort((a, b) => {
+        return a > b ? 1 : -1;
+      });
+      for (let i = 0; i < resultTrackList.files.length; i++) {
+        let bookName = resultTrackList.files[i].slice(libRootDir!.length + 1);
+        let title = bookName.slice(0, bookName.indexOf('/'));
+        if (title !== items.name) {
+          title = title + '\n' + items.name;
+        }
+        let track = {
+          id: resultTrackList.files[i],
+          url: 'file://' + resultTrackList.files[i],
+          title: title,
+          artist: '',
+          file: bookName.slice(bookName.lastIndexOf('/') + 1),
+        };
+        trackFileList.push(track);
       }
-      let track = {
-        id: resultTrackList.files[i],
-        url: 'file://' + resultTrackList.files[i],
-        title: title,
-        artist: '',
-        file: bookName.slice(bookName.lastIndexOf('/') + 1),
-      };
-
-      trackFileList.push(track);
     }
     loadTrack(trackFileList);
 
@@ -156,32 +166,7 @@ export default function LibraryGetList({rootDir}: Props) {
         onPress={() => {
           setSelectedId(item.id);
           storage.set('@selectedBook', item.id);
-          // console.log(item.name);
-          if (item.dir === 'f') {
-            let trackFileList = [
-              {
-                id: item.id,
-                url: 'file://' + item.path,
-                title: item.name,
-                artist: '',
-              },
-            ];
-            loadTrack(trackFileList);
-
-            // Объект треклист
-            storage.set('@trackList', JSON.stringify(trackFileList));
-            // Число треков в треклисте
-            storage.set('@trackCount', trackFileList.length);
-            // всего прослушано сек
-            storage.set('@totalListened', 0);
-
-            setTrackList(trackFileList);
-            getBookDurations(trackFileList.length);
-          } else {
-            scanTracs(item.path, item.name);
-          }
-
-          // navigation.navigate('PlayerScreenRoute');
+          scanTracs(item);
         }}
         // Выбор книги=======================================
         backgroundColor={backgroundColor}

@@ -27,11 +27,11 @@ export default function PlayerScreen() {
     info.title = 'Не выбрана книга!';
   }
 
-  useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
-    if (event.type === Event.PlaybackTrackChanged) {
-      setTrackInfo();
-    }
-  });
+  // useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
+  //   if (event.type === Event.PlaybackTrackChanged) {
+  //     setTrackInfo();
+  //   }
+  // });
 
   // Когда экран в фокусе
   useFocusEffect(
