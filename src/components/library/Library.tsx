@@ -36,7 +36,11 @@ export default function Library({navigation}: any) {
     {key: 'first', title: 'Все книги'},
     {key: 'second', title: 'Новые'},
   ]);
-  const FirstRoute = () => <LibraryGetList rootDir={rootPath!} />;
+
+  // eslint-disable-next-line react/no-unstable-nested-components
+  const FirstRoute = () => (
+    <LibraryGetList navigation={navigation} rootDir={rootPath!} />
+  );
   const renderScene = SceneMap({
     first: FirstRoute,
     second: SecondRoute,
@@ -77,6 +81,7 @@ export default function Library({navigation}: any) {
         </View>
       </View>
       <Divider />
+      {/* <LibraryGetList navigation={navigation} rootDir={rootPath!} /> */}
       <TabView
         renderTabBar={renderTabBar}
         navigationState={{index, routes}}

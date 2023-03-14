@@ -1,39 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import {Title} from 'react-native-paper';
-import TrackPlayer, {
-  useTrackPlayerEvents,
-  Event,
-  State,
-  Track,
-} from 'react-native-track-player';
+import {Track} from 'react-native-track-player';
 
-export default function Header() {
-  const [info, setInfo] = useState<Track>({});
-  useEffect(() => {
-    setTrackInfo();
-  }, []);
-
-  useTrackPlayerEvents([Event.PlaybackTrackChanged], event => {
-    if (event.state === State.nextTrack) {
-      setTrackInfo();
-    }
-    setTrackInfo();
-  });
-
-  async function setTrackInfo() {
-    const track = await TrackPlayer.getCurrentTrack();
-    const info = await TrackPlayer.getTrack(track!);
-    setInfo(info);
-  }
-  if (info.title === null) {
-    info.title = 'Не выбрана книга';
-  }
+type Props = {headerInfo: Track};
+export default function Header({headerInfo}: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.songTitle}>{info.title}</Text>
-      <Text style={styles.artistName}>{info.artist}</Text>
-      <Text style={styles.artistName}>{info.file}</Text>
+      <Text style={styles.songTitle}>{headerInfo.title}</Text>
+      <Text style={styles.artistName}>{headerInfo.artist}</Text>
+      <Text style={styles.artistName}>{headerInfo.file}</Text>
     </View>
   );
 }

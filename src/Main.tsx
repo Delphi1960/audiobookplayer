@@ -7,13 +7,13 @@ import {RecoilRoot} from 'recoil';
 
 import LibraryNavigate from './components/navigate/LibraryNavigate';
 import PlayerScreen from './components/player/PlayerScreen';
-import PlayList from './components/player/PlayList';
+import PlayListTracks from './components/player/PlayListTracks';
 
 const Tab = createMaterialBottomTabNavigator();
 
 const PlayerScreenRoute = () => <PlayerScreen />;
 const LibraryRoute = () => <LibraryNavigate />;
-const PlayListRoute = () => <PlayList />;
+const PlayListRoute = () => <PlayListTracks />;
 
 export default function Main() {
   async function RequestGetLocation() {

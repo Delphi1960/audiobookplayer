@@ -62,7 +62,7 @@ export async function setupPlayer() {
 
 export async function addTracks(trackList) {
   await TrackPlayer.add(trackList);
-  await TrackPlayer.setRepeatMode(RepeatMode.Queue);
+  // await TrackPlayer.setRepeatMode(RepeatMode.Queue);
 }
 
 export async function playbackService() {

@@ -3,5 +3,4 @@ export interface PlayList {
   url: any;
   title: string;
   artist: string;
-  duration: number;
 }

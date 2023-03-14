@@ -1,15 +1,14 @@
 import {atom} from 'recoil';
 import {PlayList} from '../types/playList.type';
 
-export const playList = atom<PlayList[]>({
-  key: 'playList',
+export const bookTrackPlayList = atom<PlayList[]>({
+  key: 'bookTrackPlayList',
   default: [
     {
       id: '1',
       url: '',
       title: 'Книга не выбрана',
       artist: '',
-      duration: 0,
     },
   ],
 });
@@ -19,7 +18,7 @@ export const rootDirPath = atom<string | undefined>({
   default: '/storage/emulated/0',
 });
 
-export const currentBookId = atom<string | undefined>({
-  key: 'currentBookId',
+export const selectedBookId = atom<string | undefined>({
+  key: 'selectedBookId',
   default: '',
 });

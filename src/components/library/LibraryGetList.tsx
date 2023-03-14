@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 
 import TrackPlayer from 'react-native-track-player';
-import {addTracks} from '../../utils/trackPlayerServices';
 import {scanDir} from '../../utils/scanDir';
 import {storage} from '../../utils/storage';
 import {PlayList} from '../../types/playList.type';
@@ -62,17 +61,18 @@ const Item = ({
   </TouchableOpacity>
 );
 
-type Props = {rootDir: string};
+type Props = {navigation: any; rootDir: string};
 
 export default function LibraryGetList({rootDir}: Props) {
   const [booksList, setBooksList] = useState<ItemData[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
   const [libRootDir, setLibRootDir] = useState<string | undefined>('');
   const [, setTrackList] = useState<PlayList[]>([]);
+  // const [sizeTrack, setSizeTrack] = useState(0);
 
-  async function loadPlaylist(trc: PlayList[]) {
+  async function loadTrack(trc: PlayList[]) {
     await TrackPlayer.reset();
-    addTracks(trc);
+    await TrackPlayer.add(trc);
   }
 
   async function scanTracs(path: string, name: string) {
@@ -80,7 +80,6 @@ export default function LibraryGetList({rootDir}: Props) {
     resultTrackList.files.sort((a, b) => {
       return a > b ? 1 : -1;
     });
-    // console.log(resultTrackList.files);
     let trackFileList = [];
     for (let i = 0; i < resultTrackList.files.length; i++) {
       let bookName = resultTrackList.files[i].slice(libRootDir!.length + 1);
@@ -94,16 +93,56 @@ export default function LibraryGetList({rootDir}: Props) {
         title: title,
         artist: '',
         file: bookName.slice(bookName.lastIndexOf('/') + 1),
-        duration: 0,
       };
 
       trackFileList.push(track);
     }
-    loadPlaylist(trackFileList);
+    loadTrack(trackFileList);
+
+    // Объект треклист
     storage.set('@trackList', JSON.stringify(trackFileList));
+    // Число треков в треклисте
+    storage.set('@trackCount', trackFileList.length);
+    // всего прослушано сек
+    storage.set('@totalListened', 0);
 
     setTrackList(trackFileList);
+    getBookDurations(trackFileList.length);
   }
+
+  // Общее время воспроизведения книги
+  const getBookDurations = (trackCount: number) => {
+    let allSize = 0;
+
+    // console.log('к-во треков в очереди', trackCount);
+    // Пройдем по трекам и суммируем время воспроизведения каждого
+    const getDurationSec = async () => {
+      TrackPlayer.skip(0);
+
+      for (let i = 0; i < trackCount; i++) {
+        // переходим к i-му треку
+        TrackPlayer.skip(i);
+        // время воспроизведения трека в сек
+        let size = await TrackPlayer.getDuration();
+        // Часто с первого раза не всегда удается получить duration поэтому повторяем попытку
+        // Нужно ограничить число попыток, чтобы избежать зацикливания. Вдуг у файла duration=0(дефект файла)
+        let count = 0;
+        while (size === 0 && count < 10) {
+          size = await TrackPlayer.getDuration();
+          count++;
+        }
+
+        allSize = allSize + size;
+        // console.log({i, size, count});
+      }
+      // setSizeTrack(allSize);
+      storage.set('@bookDurations', allSize);
+      // console.log({allSize});
+      // console.log('=========================');
+      TrackPlayer.skip(0);
+    };
+    getDurationSec();
+  };
 
   const renderItem = ({item}: {item: ItemData}) => {
     const backgroundColor = item.id === selectedId ? '#6e3b6e' : '#d3bdde';
@@ -125,20 +164,24 @@ export default function LibraryGetList({rootDir}: Props) {
                 url: 'file://' + item.path,
                 title: item.name,
                 artist: '',
-                duration: 0,
               },
             ];
-            loadPlaylist(trackFileList);
+            loadTrack(trackFileList);
+
+            // Объект треклист
             storage.set('@trackList', JSON.stringify(trackFileList));
+            // Число треков в треклисте
+            storage.set('@trackCount', trackFileList.length);
+            // всего прослушано сек
+            storage.set('@totalListened', 0);
+
             setTrackList(trackFileList);
+            getBookDurations(trackFileList.length);
           } else {
             scanTracs(item.path, item.name);
           }
 
-          // console.log(
-          //   '======@trackList======',
-          //   JSON.parse(storage.getString('@trackList')!),
-          // );
+          // navigation.navigate('PlayerScreenRoute');
         }}
         // Выбор книги=======================================
         backgroundColor={backgroundColor}
@@ -199,9 +242,6 @@ export default function LibraryGetList({rootDir}: Props) {
       };
     });
 
-    // for (let i = 0; i < bookList.length; i++) {
-    //   console.log(bookList[i]);
-    // }
     bookList.sort((a, b) => {
       if (a.dir === b.dir) {
         return a.name > b.name ? 1 : -1;

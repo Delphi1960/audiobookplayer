@@ -7,6 +7,7 @@ import TrackPlayer, {
   useProgress,
 } from 'react-native-track-player';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import {storage} from '../../utils/storage';
 
 type Props = {};
 
@@ -17,6 +18,9 @@ export default function PlayerButtons({}: Props) {
   async function handlePlayPress() {
     if ((await TrackPlayer.getState()) === State.Playing) {
       TrackPlayer.pause();
+      //Сохраним текущую позицию в треке
+      storage.set('@currentTrackPos', position);
+      console.log(position);
     } else {
       TrackPlayer.play();
     }

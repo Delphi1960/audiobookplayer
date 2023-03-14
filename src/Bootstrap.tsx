@@ -15,12 +15,24 @@ export default function Bootstrap({children}: Props) {
   // storage.clearAll();
   const [isPlayerReady, setIsPlayerReady] = useState(false);
 
+  // // Путь к библиотеке
+  // const setRootDirPath = useSetRecoilState(rootDirPath);
+  // // TrackList список файлов для воспроизведения
+  // const setBookTrackList = useSetRecoilState(bookTrackPlayList);
+  // //id выбранной книги/рассказа
+  // const setSelectedBookId = useSetRecoilState(selectedBookId);
+
+  //==========================================================================================
+  // Путь к библиотеке
   let rootPath = storage.getString('@rootPath');
   if (rootPath === undefined) {
     rootPath = '/storage/emulated/0/';
     storage.set('@rootPath', rootPath);
   }
+  // setRootDirPath(rootPath);
 
+  //==========================================================================================
+  // TrackList список файлов для воспроизведения
   let trackListStr: string | undefined = storage.getString('@trackList');
   let trackList: PlayList[];
   if (trackListStr === undefined) {
@@ -30,7 +42,6 @@ export default function Bootstrap({children}: Props) {
         url: '',
         title: 'Книга не выбрана!',
         artist: '',
-        duration: 0,
       },
     ];
   } else {
@@ -43,15 +54,19 @@ export default function Bootstrap({children}: Props) {
         url: '',
         title: 'Книга не выбрана!',
         artist: '',
-        duration: 0,
       },
     ];
   }
   storage.set('@trackList', JSON.stringify(trackList));
+  // setBookTrackList(trackList);
   // console.log({rootPath, trackListStr, trackList});
 
   //==========================================================================================
-  async function loadPlaylist(tracks: any) {
+  //id выбранной книги/рассказа
+  // let selectedBook = storage.getString('@selectedBook');
+  // setSelectedBookId(selectedBook);
+  //==========================================================================================
+  async function loadPlaylist(tracks: PlayList[]) {
     await TrackPlayer.reset();
     addTracks(tracks);
   }
@@ -62,8 +77,27 @@ export default function Bootstrap({children}: Props) {
     const queue = await TrackPlayer.getQueue();
     if (isSetup && queue.length <= 0) {
       loadPlaylist(trackList);
+
+      // Восстановим номер трека и позицию
+      const currentTrack = storage.getNumber('@currentTrack');
+      if (currentTrack === undefined) {
+        TrackPlayer.skip(0);
+      } else {
+        TrackPlayer.skip(currentTrack);
+      }
+      const currentTrackPos = storage.getNumber('@currentTrackPos');
+      if (currentTrackPos === undefined) {
+        TrackPlayer.seekTo(0!);
+      } else {
+        TrackPlayer.seekTo(currentTrackPos!);
+      }
     }
     setIsPlayerReady(isSetup);
+  }
+
+  const totalListened = storage.getNumber('@totalListened');
+  if (totalListened === undefined) {
+    storage.set('@totalListened', 0);
   }
 
   // useEffect(() => {
